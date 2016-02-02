@@ -46,13 +46,13 @@
  * Change these values according to your device if
  * you don't want to provide parameters
  */
-#define BOOTLOADER_DESC        "STM32  BOOTLOADER"
+#define BOOTLOADER_DESC        "STM32 BOOTLOADER"
 #define BOOTLOADER_VID         0x0483
 #define BOOTLOADER_PID         0xDF11
 #define PEACHY_DESC        "Peachy Printer"
 #define PEACHY_VID         0x16D0
 #define PEACHY_PID         0x0AF3
-#define INF_NAME    "usb_device.inf"
+#define INF_NAME    "stm32_bootloader.inf"
 #define DEFAULT_DIR "usb_driver"
 
 void usage(void)
@@ -67,26 +67,38 @@ void usage(void)
 	printf("Press Enter to continue\n");
 	getchar(); //hacky pause (press enter)
 }
-void set_bootloader_to_winusb(int verbose) {
+int set_bootloader_to_winusb(int verbose) {
 	int opt_silent = verbose;
 	struct wdi_device_info *device, list;
 	char* inf_name = NULL;
-	
+	int r;
+	struct wdi_options_prepare_driver driver_opts = {0};
+
+	driver_opts.driver_type = WDI_WINUSB;
+	driver_opts.vendor_name = NULL;
+	driver_opts.device_guid = NULL;
+	driver_opts.disable_cat = FALSE;
+	driver_opts.disable_signing = FALSE;
+	driver_opts.use_wcid_driver = FALSE;	
+
+
 	list = listDevices(verbose);
 	if (&list != NULL) {
 		oprintf("set_bootloader_to_winusb - valid list\n");
 		for (device = &list; device != NULL; device = device->next) {
 			if ((device->vid == BOOTLOADER_VID) && (device->pid == BOOTLOADER_PID)) {
-				inf_name = to_valid_filename(device->desc, ".inf");
-				if (inf_name == NULL) {
-					oprintf("'%s' is %s for a device name",
-						device->desc, (strlen(device->desc)>WDI_MAX_STRLEN) ? "too long" : "invalid");
+				//inf_name = INF_NAME;
+				oprintf("Installing using inf name: %s\n", INF_NAME);
+				if (wdi_prepare_driver(device, DEFAULT_DIR, INF_NAME, &driver_opts) == WDI_SUCCESS) {
+					oprintf("Successful driver prepare!\n");
+					r=wdi_install_driver(device, DEFAULT_DIR, INF_NAME, NULL);
+					oprintf("got return code: %d=%s \n", r,wdi_strerror(r));
 				}
-				oprintf("Using inf name: %s", inf_name);
-				//Got device as pointer to the bootloader stuff, now lets install things?
 			}
 		}
 	}
+	wdi_destroy_list(&list);
+	return r;
 }
 
 struct wdi_device_info listDevices(int verbose){
@@ -133,7 +145,7 @@ int __cdecl main(int argc, char** argv)
 {
 	static int opt_silent = 1, log_level = WDI_LOG_LEVEL_WARNING;
 	struct wdi_device_info *list;
-	int c;
+	int c,r;
 	BOOL list_usbs=FALSE, bootloaderWinusbInstall=FALSE;
 	BOOL pause=FALSE;
 	char *inf_name = INF_NAME;
@@ -187,11 +199,12 @@ int __cdecl main(int argc, char** argv)
 	}
 
 	if (list_usbs) {
-		*list=listDevices(opt_silent);
+		listDevices(opt_silent);
 	}
 
 	if (bootloaderWinusbInstall) {
-		set_bootloader_to_winusb(opt_silent);
+		r=set_bootloader_to_winusb(opt_silent);
+		printf("RETURN:%d", r); //just print the return code for now
 	}
 
 	if (pause){
