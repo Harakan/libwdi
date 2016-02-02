@@ -81,7 +81,6 @@ int set_bootloader_to_winusb(int verbose) {
 	driver_opts.disable_signing = FALSE;
 	driver_opts.use_wcid_driver = FALSE;	
 
-
 	list = listDevices(verbose);
 	if (&list != NULL) {
 		oprintf("set_bootloader_to_winusb - valid list\n");
@@ -97,7 +96,7 @@ int set_bootloader_to_winusb(int verbose) {
 			}
 		}
 	}
-	wdi_destroy_list(&list);
+	//wdi_destroy_list(&list);
 	return r;
 }
 
@@ -105,7 +104,7 @@ struct wdi_device_info listDevices(int verbose){
 
 	int opt_silent = verbose;
 	struct wdi_device_info *device, *list;
-	static struct wdi_options_create_list ocl = { 0 };
+	struct wdi_options_create_list ocl = { 0 };
 
 	ocl.list_all = TRUE;
 	ocl.list_hubs = TRUE;
@@ -204,6 +203,7 @@ int __cdecl main(int argc, char** argv)
 
 	if (bootloaderWinusbInstall) {
 		r=set_bootloader_to_winusb(opt_silent);
+		listDevices(opt_silent); // Print these before and after :)
 		printf("RETURN:%d", r); //just print the return code for now
 	}
 
