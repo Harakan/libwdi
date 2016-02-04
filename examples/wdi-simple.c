@@ -203,6 +203,7 @@ int __cdecl main(int argc, char** argv)
 
 	if (bootloaderWinusbInstall) {
 		r=set_bootloader_to_winusb(opt_silent);
+		listDevices(opt_silent);
 		printf("RETURN:%d\n", r); //just print the return code for now
 	}
 
