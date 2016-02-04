@@ -87,10 +87,9 @@ int set_bootloader_to_winusb(int verbose) {
 		oprintf("set_bootloader_to_winusb - valid list\n");
 		for (device = &list; device != NULL; device = device->next) {
 			if ((device->vid == BOOTLOADER_VID) && (device->pid == BOOTLOADER_PID)) {
-				//inf_name = INF_NAME;
 				oprintf("Installing using inf name: %s\n", INF_NAME);
-				if (wdi_prepare_driver(device, DEFAULT_DIR, INF_NAME, &driver_opts) == WDI_SUCCESS) {
-					oprintf("Successful driver prepare!\n");
+				if ((wdi_prepare_driver(device, DEFAULT_DIR, INF_NAME, &driver_opts) == WDI_SUCCESS) & (device->driver != "WINUSB")) {
+					oprintf("Prepared driver for install\n");
 					r=wdi_install_driver(device, DEFAULT_DIR, INF_NAME, NULL);
 					oprintf("got return code: %d=%s \n", r,wdi_strerror(r));
 				}
