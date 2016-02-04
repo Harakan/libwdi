@@ -96,7 +96,6 @@ int set_bootloader_to_winusb(int verbose) {
 			}
 		}
 	}
-	//wdi_destroy_list(&list);
 	return r;
 }
 
@@ -204,7 +203,7 @@ int __cdecl main(int argc, char** argv)
 	if (bootloaderWinusbInstall) {
 		r=set_bootloader_to_winusb(opt_silent);
 		listDevices(opt_silent); // Print these before and after :)
-		printf("RETURN:%d", r); //just print the return code for now
+		printf("RETURN:%d,%s", r, wdi_strerror(r)); //just print the return code for now
 	}
 
 	if (pause){
